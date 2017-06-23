@@ -1,5 +1,9 @@
 # Ingress
 
+This is the fork of ingress controller
+to build execute `make all`
+
+
 [![Build Status](https://travis-ci.org/kubernetes/ingress.svg?branch=master)](https://travis-ci.org/kubernetes/ingress)
 [![Coverage Status](https://coveralls.io/repos/github/kubernetes/ingress/badge.svg?branch=master)](https://coveralls.io/github/kubernetes/ingress)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kubernetes/ingress)](https://goreportcard.com/report/github.com/kubernetes/ingress)

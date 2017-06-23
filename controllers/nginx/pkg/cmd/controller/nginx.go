@@ -36,6 +36,7 @@ import (
 	proxyproto "github.com/armon/go-proxyproto"
 	api_v1 "k8s.io/client-go/pkg/api/v1"
 
+	"k8s.io/ingress/controllers/nginx/pkg/cmd/controller/redis_client"
 	"k8s.io/ingress/controllers/nginx/pkg/config"
 	ngx_template "k8s.io/ingress/controllers/nginx/pkg/template"
 	"k8s.io/ingress/controllers/nginx/pkg/version"
@@ -531,6 +532,7 @@ func (n *NGINXController) OnUpdate(ingressCfg ingress.Configuration) error {
 		CustomErrors:        len(cfg.CustomHTTPErrors) > 0,
 		Cfg:                 cfg,
 		IsIPV6Enabled:       n.isIPV6Enabled && !cfg.DisableIpv6,
+		DrainedServers:      redis_client.New(),
 	})
 
 	if err != nil {

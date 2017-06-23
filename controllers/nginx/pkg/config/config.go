@@ -23,6 +23,7 @@ import (
 
 	"github.com/golang/glog"
 
+	"k8s.io/ingress/controllers/nginx/pkg/cmd/controller/redis_client"
 	"k8s.io/ingress/core/pkg/ingress"
 	"k8s.io/ingress/core/pkg/ingress/defaults"
 )
@@ -419,4 +420,5 @@ type TemplateConfig struct {
 	CustomErrors        bool
 	Cfg                 Configuration
 	IsIPV6Enabled       bool
+	DrainedServers      *redis_client.DrainedServers
 }
