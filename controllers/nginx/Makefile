@@ -3,10 +3,10 @@ all: push
 BUILDTAGS=
 
 # Use the 0.0 tag for testing, it shouldn't clobber any release builds
-TAG?=0.9.0-beta.10
-REGISTRY?=gcr.io/google_containers
+TAG?=0.9.0-beta.11
+REGISTRY?=quay.io/hippo
 GOOS?=linux
-DOCKER?=gcloud docker --
+DOCKER?=docker
 
 REPO_INFO=$(shell git config --get remote.origin.url)
 
@@ -20,7 +20,7 @@ ARCH ?= $(shell go env GOARCH)
 GOARCH = ${ARCH}
 DUMB_ARCH = ${ARCH}
 
-ALL_ARCH = amd64 arm ppc64le
+ALL_ARCH = amd64
 
 QEMUVERSION=v2.7.0
 
@@ -29,7 +29,7 @@ IMAGE = $(REGISTRY)/$(IMGNAME)
 MULTI_ARCH_IMG = $(IMAGE)-$(ARCH)
 
 # Set default base image dynamically for each arch
-BASEIMAGE?=gcr.io/google_containers/nginx-slim-$(ARCH):0.20
+BASEIMAGE?=gcr.io/google_containers/nginx-slim-$(ARCH):0.21
 
 ifeq ($(ARCH),arm)
     QEMUARCH=arm
@@ -65,19 +65,19 @@ all-push: $(addprefix sub-push-,$(ALL_ARCH))
 container: .container-$(ARCH)
 .container-$(ARCH):
 	cp -r ./* $(TEMP_DIR)
-	cd $(TEMP_DIR) && sed -i 's|BASEIMAGE|$(BASEIMAGE)|g' rootfs/Dockerfile
-	cd $(TEMP_DIR) && sed -i "s|QEMUARCH|$(QEMUARCH)|g" rootfs/Dockerfile
-	cd $(TEMP_DIR) && sed -i "s|DUMB_ARCH|$(DUMB_ARCH)|g" rootfs/Dockerfile
+	cd $(TEMP_DIR) && sed -i '' 's|BASEIMAGE|$(BASEIMAGE)|g' rootfs/Dockerfile
+	cd $(TEMP_DIR) && sed -i '' "s|QEMUARCH|$(QEMUARCH)|g" rootfs/Dockerfile
+	cd $(TEMP_DIR) && sed -i '' "s|DUMB_ARCH|$(DUMB_ARCH)|g" rootfs/Dockerfile
 
 ifeq ($(ARCH),amd64)
 	# When building "normally" for amd64, remove the whole line, it has no part in the amd64 image
-	cd $(TEMP_DIR) && sed -i "/CROSS_BUILD_/d" rootfs/Dockerfile
+	cd $(TEMP_DIR) && sed -i '' "/CROSS_BUILD_/d" rootfs/Dockerfile
 else
 	# When cross-building, only the placeholder "CROSS_BUILD_" should be removed
 	# Register /usr/bin/qemu-ARCH-static as the handler for ARM binaries in the kernel
 	$(DOCKER) run --rm --privileged multiarch/qemu-user-static:register --reset
 	curl -sSL https://github.com/multiarch/qemu-user-static/releases/download/$(QEMUVERSION)/x86_64_qemu-$(QEMUARCH)-static.tar.gz | tar -xz -C $(TEMP_DIR)/rootfs
-	cd $(TEMP_DIR) && sed -i "s/CROSS_BUILD_//g" rootfs/Dockerfile
+	cd $(TEMP_DIR) && sed -i '' "s/CROSS_BUILD_//g" rootfs/Dockerfile
 endif
 
 	$(DOCKER) build -t $(MULTI_ARCH_IMG):$(TAG) $(TEMP_DIR)/rootfs

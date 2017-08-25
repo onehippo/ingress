@@ -23,6 +23,7 @@ import (
 
 	"github.com/golang/glog"
 
+	"k8s.io/ingress/controllers/nginx/pkg/cmd/controller/redis_client"
 	"k8s.io/ingress/core/pkg/ingress"
 	"k8s.io/ingress/core/pkg/ingress/defaults"
 )
@@ -82,6 +83,9 @@ const (
 // Configuration represents the content of nginx.conf file
 type Configuration struct {
 	defaults.Backend `json:",squash"`
+
+	// Sets the name of the configmap that contains the headers to pass to the client
+	AddHeaders string `json:"add-headers,omitempty"`
 
 	// AllowBackendServerHeader enables the return of the header Server from the backend
 	// instead of the generic nginx string.
@@ -215,6 +219,16 @@ type Configuration struct {
 	// http://nginx.org/en/docs/http/ngx_http_core_module.html#server_names_hash_bucket_size
 	ServerNameHashBucketSize int `json:"server-name-hash-bucket-size,omitempty"`
 
+	// Size of the bucket for the proxy headers hash tables
+	// http://nginx.org/en/docs/hash.html
+	// https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_headers_hash_max_size
+	ProxyHeadersHashMaxSize int `json:"proxy-headers-hash-max-size,omitempty"`
+
+	// Maximum size of the bucket for the proxy headers hash tables
+	// http://nginx.org/en/docs/hash.html
+	// https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_headers_hash_bucket_size
+	ProxyHeadersHashBucketSize int `json:"proxy-headers-hash-bucket-size,omitempty"`
+
 	// Enables or disables emitting nginx version in error messages and in the “Server” response header field.
 	// http://nginx.org/en/docs/http/ngx_http_core_module.html#server_tokens
 	// Default: true
@@ -337,6 +351,8 @@ func NewDefault() Configuration {
 		MapHashBucketSize:        64,
 		ProxyRealIPCIDR:          defIPCIDR,
 		ServerNameHashMaxSize:    1024,
+		ProxyHeadersHashMaxSize:  512,
+		ProxyHeadersHashBucketSize: 64,
 		ShowServerTokens:         true,
 		SSLBufferSize:            sslBufferSize,
 		SSLCiphers:               sslCiphers,
@@ -368,7 +384,7 @@ func NewDefault() Configuration {
 			SkipAccessLogURLs:    []string{},
 		},
 		UpstreamKeepaliveConnections: 0,
-		LimitConnZoneVariable: defaultLimitConnZoneVariable,
+		LimitConnZoneVariable:        defaultLimitConnZoneVariable,
 	}
 
 	if glog.V(5) {
@@ -392,6 +408,7 @@ func (cfg Configuration) BuildLogFormatUpstream() string {
 // TemplateConfig contains the nginx configuration to render the file nginx.conf
 type TemplateConfig struct {
 	ProxySetHeaders     map[string]string
+	AddHeaders          map[string]string
 	MaxOpenFiles        int
 	BacklogSize         int
 	Backends            []*ingress.Backend
@@ -403,4 +420,5 @@ type TemplateConfig struct {
 	CustomErrors        bool
 	Cfg                 Configuration
 	IsIPV6Enabled       bool
+	DrainedServers      *redis_client.DrainedServers
 }
