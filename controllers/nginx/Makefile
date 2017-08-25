@@ -3,7 +3,7 @@ all: push
 BUILDTAGS=
 
 # Use the 0.0 tag for testing, it shouldn't clobber any release builds
-TAG?=0.9.0-beta.11
+TAG?=0.9.0-beta.11-brc-$(shell date +%Y.%m.%d)
 REGISTRY?=quay.io/hippo
 GOOS?=linux
 DOCKER?=docker
