@@ -35,7 +35,7 @@ import (
 	"github.com/mitchellh/go-ps"
 	"github.com/spf13/pflag"
 
-	proxyproto "github.com/armon/go-proxyproto"
+	"github.com/armon/go-proxyproto"
 	"github.com/ncabatoff/process-exporter/proc"
 	apiv1 "k8s.io/api/core/v1"
 	extensions "k8s.io/api/extensions/v1beta1"
@@ -48,6 +48,7 @@ import (
 	"k8s.io/ingress-nginx/pkg/nginx/config"
 	ngx_template "k8s.io/ingress-nginx/pkg/nginx/template"
 	"k8s.io/ingress-nginx/version"
+	"k8s.io/ingress-nginx/pkg/nginx/controller/redis_client"
 )
 
 type statusModule string
@@ -689,6 +690,7 @@ func (n *NGINXController) OnUpdate(ingressCfg ingress.Configuration) error {
 		IsSSLPassthroughEnabled: n.isSSLPassthroughEnabled,
 		ListenPorts:             n.ports,
 		PublishService:          n.controller.GetPublishService(),
+		DrainedServers:          redis_client.New(),
 	}
 
 	content, err := n.t.Write(tc)
