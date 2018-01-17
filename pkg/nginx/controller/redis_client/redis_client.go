@@ -5,6 +5,7 @@ import (
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/golang/glog"
+	"time"
 )
 
 // Address of the redis sentinel service registered in k8s
@@ -17,7 +18,10 @@ func New() *DrainedServers {
 
 // ConnectRedis returns a connection to the redis sentinel
 func ConnectRedis() (redis.Conn, error) {
-	sc, err := redis.Dial("tcp", RedisSentinelServer)
+	sc, err := redis.Dial("tcp", RedisSentinelServer,
+		redis.DialConnectTimeout(5*time.Second),
+		redis.DialReadTimeout(5*time.Second),
+		redis.DialWriteTimeout(5*time.Second))
 	if err != nil {
 		glog.Warningf("Couldn't connect to redis " + RedisSentinelServer)
 		return nil, err
