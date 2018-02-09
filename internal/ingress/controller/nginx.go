@@ -55,6 +55,7 @@ import (
 	"k8s.io/ingress-nginx/internal/net/ssl"
 	"k8s.io/ingress-nginx/internal/task"
 	"k8s.io/ingress-nginx/internal/watch"
+	"k8s.io/ingress-nginx/internal/ingress/controller/redis_client"
 )
 
 type statusModule string
@@ -581,6 +582,7 @@ func (n *NGINXController) OnUpdate(ingressCfg ingress.Configuration) error {
 		IsSSLPassthroughEnabled: n.cfg.EnableSSLPassthrough,
 		ListenPorts:             n.cfg.ListenPorts,
 		PublishService:          n.GetPublishService(),
+		DrainedServers:          redis_client.New(),
 	}
 
 	content, err := n.t.Write(tc)

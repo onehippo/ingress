@@ -27,6 +27,7 @@ import (
 
 	"k8s.io/ingress-nginx/internal/ingress"
 	"k8s.io/ingress-nginx/internal/ingress/defaults"
+	"k8s.io/ingress-nginx/internal/ingress/controller/redis_client"
 )
 
 const (
@@ -598,6 +599,7 @@ type TemplateConfig struct {
 	RedirectServers         map[string]string
 	ListenPorts             *ListenPorts
 	PublishService          *apiv1.Service
+	DrainedServers          *redis_client.DrainedServers
 }
 
 // ListenPorts describe the ports required to run the
