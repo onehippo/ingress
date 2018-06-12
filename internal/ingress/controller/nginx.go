@@ -35,7 +35,7 @@ import (
 
 	"github.com/golang/glog"
 
-	proxyproto "github.com/armon/go-proxyproto"
+	"github.com/armon/go-proxyproto"
 	"github.com/eapache/channels"
 	apiv1 "k8s.io/api/core/v1"
 	extensions "k8s.io/api/extensions/v1beta1"
@@ -59,6 +59,7 @@ import (
 	"k8s.io/ingress-nginx/internal/net/ssl"
 	"k8s.io/ingress-nginx/internal/task"
 	"k8s.io/ingress-nginx/internal/watch"
+	"k8s.io/ingress-nginx/internal/ingress/controller/redis_client"
 )
 
 type statusModule string
@@ -626,6 +627,7 @@ func (n *NGINXController) OnUpdate(ingressCfg ingress.Configuration) error {
 		PublishService:              n.GetPublishService(),
 		DynamicConfigurationEnabled: n.cfg.DynamicConfigurationEnabled,
 		DisableLua:                  n.cfg.DisableLua,
+		DrainedServers:              redis_client.New(),
 	}
 
 	content, err := n.t.Write(tc)

@@ -3,8 +3,8 @@ all: all-container
 BUILDTAGS=
 
 # Use the 0.0 tag for testing, it shouldn't clobber any release builds
-TAG?=0.1
-REGISTRY?=quay.io/kubernetes-ingress-controller
+TAG?=0.2
+REGISTRY?=quay.io/hippo
 GOOS?=linux
 DOCKER?=docker
 SED_I?=sed -i
@@ -32,7 +32,7 @@ ALL_ARCH = amd64 arm arm64 ppc64le
 
 QEMUVERSION=v2.9.1
 
-IMGNAME = custom-error-pages
+IMGNAME = backend
 IMAGE = $(REGISTRY)/$(IMGNAME)
 MULTI_ARCH_IMG = $(IMAGE)-$(ARCH)
 

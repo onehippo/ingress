@@ -18,4 +18,6 @@ CROSS_BUILD_COPY qemu-QEMUARCH-static /usr/bin/
 
 COPY . /
 
+COPY www /www2
+
 CMD ["/custom-error-pages"]

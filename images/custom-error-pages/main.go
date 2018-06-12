@@ -39,12 +39,14 @@ const (
 
 	// ContentType name of the header that defines the format of the reply
 	ContentType = "Content-Type"
+
+	ServiceName = "X-Service-Name"
 )
 
 func main() {
 	path := "/www"
-	if os.Getenv("PATH") != "" {
-		path = os.Getenv("PATH")
+	if os.Getenv("ERRPATH") != "" {
+		path = os.Getenv("ERRPATH")
 	}
 
 	http.HandleFunc("/", errorHandler(path))
@@ -66,25 +68,37 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 		format := r.Header.Get(FormatHeader)
 		if format == "" {
 			format = "text/html"
-			log.Printf("forma not specified. Using %v\n", format)
+			log.Printf("format not specified. Using %v", format)
 		}
 
-		mediaType, _, _ := mime.ParseMediaType(format)
-		cext, err := mime.ExtensionsByType(mediaType)
+		cext, err := mime.ExtensionsByType(format)
 		if err != nil {
-			log.Printf("unexpected error reading media type extension: %v. Using %v\n", err, ext)
+			//log.Printf("unexpected error reading media type extension: %v. Using %v\n", err, ext)
 		} else if len(cext) == 0 {
-			log.Printf("couldn't get media type extension. Using %v\n", ext)
+			//log.Printf("couldn't get media type extension. Using %v\n", ext)
 		} else {
 			ext = cext[0]
 		}
+		//fmt.Println("service: " + r.Header.Get(ServiceName))
+		//fmt.Println("code: " + r.Header.Get(CodeHeader))
+
 		w.Header().Set(ContentType, format)
 
 		errCode := r.Header.Get(CodeHeader)
 		code, err := strconv.Atoi(errCode)
 		if err != nil {
+			fmt.Println("err: " + err.Error())
 			code = 404
-			log.Printf("unexpected error reading return code: %v. Using %v\n", err, code)
+			path = "/www2"
+		}
+		if code == 503 && !strings.Contains(r.Header.Get(ServiceName), "cms") {
+			//fmt.Println("service: " + r.Header.Get(ServiceName))
+			//fmt.Println("code: " + r.Header.Get(CodeHeader))
+			path = "/www2"
+		}
+
+		if code == 503 && strings.Contains(r.Header.Get(ServiceName), "cms") {
+			ext = "html"
 		}
 		w.WriteHeader(code)
 
@@ -104,12 +118,12 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 				return
 			}
 			defer f.Close()
-			log.Printf("serving custom error response for code %v and format %v from file %v\n", code, format, file)
+			//log.Printf("serving custom error response for code %v and format %v from file %v\n", code, format, file)
 			io.Copy(w, f)
 			return
 		}
 		defer f.Close()
-		log.Printf("serving custom error response for code %v and format %v from file %v\n", code, format, file)
+		//log.Printf("serving custom error response for code %v and format %v from file %v\n", code, format, file)
 		io.Copy(w, f)
 
 		duration := time.Now().Sub(start).Seconds()
