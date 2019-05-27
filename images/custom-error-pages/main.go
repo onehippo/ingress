@@ -62,6 +62,7 @@ func main() {
 
 func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		path = "/www"
 		start := time.Now()
 		ext := "html"
 
@@ -74,24 +75,24 @@ func errorHandler(path string) func(http.ResponseWriter, *http.Request) {
 		cext, err := mime.ExtensionsByType(format)
 		if err != nil {
 			//log.Printf("unexpected error reading media type extension: %v. Using %v\n", err, ext)
+			format = "text/html"
 		} else if len(cext) == 0 {
 			//log.Printf("couldn't get media type extension. Using %v\n", ext)
 		} else {
 			ext = cext[0]
 		}
-		//fmt.Println("service: " + r.Header.Get(ServiceName))
-		//fmt.Println("code: " + r.Header.Get(CodeHeader))
+		service:= r.Header.Get(ServiceName)
 
 		w.Header().Set(ContentType, format)
 
 		errCode := r.Header.Get(CodeHeader)
 		code, err := strconv.Atoi(errCode)
 		if err != nil {
-			fmt.Println("err: " + err.Error())
+			//fmt.Println("err: " + err.Error())
 			code = 404
 			path = "/www2"
 		}
-		if code == 503 && !strings.Contains(r.Header.Get(ServiceName), "cms") {
+		if code == 503 && !strings.Contains(service, "cms") {
 			//fmt.Println("service: " + r.Header.Get(ServiceName))
 			//fmt.Println("code: " + r.Header.Get(CodeHeader))
 			path = "/www2"
